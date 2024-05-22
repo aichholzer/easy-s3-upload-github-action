@@ -22,12 +22,12 @@ jobs:
       - name: Upload file to bucket
         uses: axazara/easy-s3-upload-github-action@main
         env:
-          FILE: ./releases/
+          SOURCE: ./releases/
           S3_ENDPOINT: 'xxxx.r2.cloudflarestorage.com/xxxx'
           S3_BUCKET: ${{ secrets.S3_BUCKET }}
           S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
-          S3_DESTINATION: 'releases/filename'
           S3_ACL: 'public-read'
           S3_PREFIX: 'releases/'
+          VERBOSE: yes
 ```
