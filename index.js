@@ -12,8 +12,9 @@ const {
   S3_BUCKET,
   S3_PREFIX,
   S3_ACL,
-  FILE,
-  S3_ENDPOINT
+  SOURCE,
+  S3_ENDPOINT,
+  VERBOSE
 } = process.env;
 
 const initializeS3 = () => {
@@ -29,18 +30,20 @@ const initializeS3 = () => {
 };
 
 const uploadToS3 = async (s3, fileName, fileContent) => {
+  const Key = path.join(S3_PREFIX || "", fileName);
   const params = {
+    Key,
     Bucket: S3_BUCKET,
-    Key: path.join(S3_PREFIX || "", fileName),
     Body: fileContent,
+    ...(S3_ACL && {
+      ACL: S3_ACL
+    })
   };
 
-  if (S3_ACL) {
-    params.ACL = S3_ACL;
-  }
-
   await s3.send(new PutObjectCommand(params));
-  console.log(`File uploaded successfully.!`);
+  if (VERBOSE) {
+    console.info(`File "${Key}" was uploaded successfully.`);
+  }
 };
 
 const uploadFile = async (s3, filePath) => {
@@ -55,21 +58,21 @@ const uploadFile = async (s3, filePath) => {
       await uploadToS3(s3, path.basename(filePath), fileContent);
     }
   } catch (err) {
-    throw Error(`Error processing ${filePath}: ${err.message}`);
+    throw Error(`Error processing "${filePath}": ${err.message}`);
   }
 };
 
 const main = async () => {
-  console.log("Uploading files to S3...");
-
-  const s3 = initializeS3();
-  const filePath = FILE;
-
-  if (!filePath) {
-    throw Error("FILE environment variable not set. Exiting. Provided : " + filePath);
+  if (VERBOSE) {
+    console.info("Uploading files to S3...");
   }
 
-  await uploadFile(s3, filePath);
+  if (!SOURCE) {
+    throw Error(`SOURCE environment variable not set. Exiting. Provided: ${filePath}`);
+  }
+  
+  const s3 = initializeS3();
+  await uploadFile(s3, SOURCE);
 };
 
-main().then(r => console.log(r));
+main().then(() => {});
