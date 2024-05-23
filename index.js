@@ -1,9 +1,10 @@
 const {
   S3Client,
   PutObjectCommand
-} = require("@aws-sdk/client-s3");
-const fs = require("fs").promises;
-const path = require("path");
+} = require('@aws-sdk/client-s3');
+const fs = require('fs').promises;
+const path = require('path');
+const { lookup } = require('mime-types');
 
 const {
   S3_REGION,
@@ -20,7 +21,7 @@ const {
 const initializeS3 = () => {
   return new S3Client({
     endpoint: S3_ENDPOINT || undefined,
-    region: S3_REGION || "us-east-1",
+    region: S3_REGION || 'us-east-1',
     forcePathStyle: true,
     credentials: {
       accessKeyId: S3_ACCESS_KEY_ID,
@@ -30,11 +31,12 @@ const initializeS3 = () => {
 };
 
 const uploadToS3 = async (s3, fileName, fileContent) => {
-  const Key = path.join(S3_PREFIX || "", fileName);
+  const Key = path.join(S3_PREFIX || '', fileName);
   const params = {
     Key,
     Bucket: S3_BUCKET,
     Body: fileContent,
+    ContentType: lookup(fileName) || 'text/plain',
     ...(S3_ACL && {
       ACL: S3_ACL
     })
@@ -64,7 +66,7 @@ const uploadFile = async (s3, filePath) => {
 
 const main = async () => {
   if (VERBOSE) {
-    console.info("Uploading files to S3...");
+    console.info('Uploading files to S3...');
   }
 
   if (!SOURCE) {
